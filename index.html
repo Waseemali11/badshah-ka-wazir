@@ -2,715 +2,411 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Badshah Ka Wazir - Online Game</title>
-
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Badshah Ka Wazir Online</title>
 <style>
 *{box-sizing:border-box}
-body{
-  margin:0;background:#10121c;color:#fff;
-  font-family:Arial,sans-serif;padding:18px
-}
-.container{max-width:850px;margin:auto}
+body{margin:0;padding:15px;background:#10131e;color:#fff;font-family:Arial,sans-serif}
+main{max-width:850px;margin:auto}
 h1{text-align:center;color:#f5c75e}
-.subtitle{text-align:center;color:#aaa}
-.panel{
-  background:#1c2030;border:1px solid #373d50;
-  border-radius:15px;padding:18px;margin:15px 0
-}
-input{
-  width:100%;padding:14px;margin:7px 0;
-  border-radius:9px;border:1px solid #555;
-  background:#101522;color:white;font-size:16px
-}
-button{
-  border:0;border-radius:9px;padding:13px 18px;
-  margin:5px;background:#e8b94e;color:#171717;
-  font-weight:bold;font-size:15px;cursor:pointer
-}
-button.secondary{background:#414b64;color:white}
+.panel{background:#1c2232;border:1px solid #3d465c;border-radius:14px;padding:16px;margin:14px 0}
+input{width:100%;padding:13px;margin:7px 0;background:#101522;color:white;border:1px solid #59627a;border-radius:8px;font-size:16px}
+button{padding:13px 17px;margin:5px 0;background:#e8b94e;color:#171717;border:0;border-radius:8px;font-weight:bold;cursor:pointer}
+button.secondary{background:#46516b;color:white}
 button:disabled{opacity:.4}
 .hidden{display:none!important}
-.players{
-  display:grid;grid-template-columns:repeat(2,1fr);gap:10px
-}
-.player{
-  background:#292f43;padding:15px;border-radius:10px;
-  text-align:center;border:1px solid #414b64
-}
-.card{
-  background:#292f43;border:2px solid #e8b94e;
-  border-radius:12px;padding:22px;margin:10px 0;
-  text-align:center;cursor:pointer;font-size:18px
-}
-.card.selected{background:#6b5425}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+.player,.card{background:#2a3248;border:1px solid #59627a;border-radius:10px;padding:15px;text-align:center}
+.card{border:2px solid #e8b94e;cursor:pointer;font-size:18px}
+.card.selected{background:#695322}
 .gold{color:#f5c75e}
-.muted{color:#aaa}
-.status{color:#8de0a2}
-.error{color:#ff8585}
-.score-row{
-  display:flex;justify-content:space-between;
-  border-bottom:1px solid #414b64;padding:10px 0
-}
-.small{font-size:13px;color:#aaa}
+.muted{color:#b6bdcc}
+.row{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid #3d465c}
 #message{white-space:pre-wrap}
-@media(max-width:500px){
-  body{padding:10px}
-  .players{grid-template-columns:1fr 1fr}
-  button{width:100%;margin:5px 0}
-}
+@media(max-width:480px){body{padding:8px}.grid{grid-template-columns:1fr 1fr}button{width:100%}}
 </style>
 </head>
-
 <body>
-<div class="container">
-
+<main>
 <h1>♛ BADSHAH KA WAZIR ♛</h1>
-<p class="subtitle">Online Multiplayer • Four Players</p>
+<p style="text-align:center" class="muted">Four Players • Online Multiplayer</p>
 
-<div id="message" class="panel muted">Connecting to Firebase...</div>
+<div id="message" class="panel muted">Connecting...</div>
 
-<!-- ENTRY -->
-<div id="entry" class="panel hidden">
-  <h2>Enter Game</h2>
-  <input id="playerName" maxlength="20" placeholder="Enter your name">
+<section id="entry" class="panel hidden">
+<h2>Enter Game</h2>
+<input id="name" maxlength="20" placeholder="Your name">
+<button id="create">Create Room</button>
+<hr>
+<input id="code" maxlength="4" placeholder="4-character room code">
+<button id="join" class="secondary">Join Room</button>
+</section>
 
-  <button id="createBtn">Create New Room</button>
-
-  <hr style="border-color:#414b64">
-
-  <h3>Join Existing Room</h3>
-  <input id="roomCodeInput" maxlength="4" placeholder="Enter 4-character room code">
-  <button id="joinBtn" class="secondary">Join Room</button>
+<section id="game" class="hidden">
+<div class="panel">
+<div class="row"><span>Room Code</span><b id="roomCode" class="gold"></b></div>
+<div class="row"><span>Round</span><b id="round">0</b></div>
+<div class="row"><span>Phase</span><b id="phase">Lobby</b></div>
+<button id="copy" class="secondary">Copy Room Code</button>
 </div>
 
-<!-- GAME -->
-<div id="game" class="hidden">
-
-  <div class="panel">
-    <div class="score-row">
-      <span>Room Code</span>
-      <strong class="gold" id="roomCode">----</strong>
-    </div>
-    <div class="score-row">
-      <span>Round</span>
-      <strong id="roundNumber">0</strong>
-    </div>
-    <div class="score-row">
-      <span>Game Status</span>
-      <strong id="phase">Waiting</strong>
-    </div>
-    <p class="small">Share the room code with your friends.</p>
-  </div>
-
-  <div class="panel">
-    <h2>Your Player</h2>
-    <h3 id="myName" class="gold">-</h3>
-    <p id="myRole">Your role will appear here.</p>
-    <p id="roleMessage" class="small"></p>
-  </div>
-
-  <div class="panel">
-    <h2>Players</h2>
-    <div id="players" class="players"></div>
-  </div>
-
-  <div class="panel">
-    <h2>Game Action</h2>
-    <div id="stageMessage" class="muted">Waiting for players...</div>
-    <div id="actionArea"></div>
-  </div>
-
-  <div class="panel">
-    <h2>Scoreboard</h2>
-    <div id="scoreboard"></div>
-  </div>
-
-  <div class="panel">
-    <h3>Game Rules</h3>
-    <p>Badshah: 1000 points</p>
-    <p>Sipahi: 300 points</p>
-    <p>Wazir: 500 points if Chor is correctly selected</p>
-    <p>Chor: 500 points if Wazir selects Sipahi</p>
-    <p class="small">The Wazir selects one of the two name cards.</p>
-  </div>
-
-  <div class="panel">
-    <button id="leaveBtn" class="secondary">Leave Room</button>
-  </div>
+<div class="panel">
+<h2>Your Identity</h2>
+<h3 id="myName" class="gold"></h3>
+<h2 id="myRole">Waiting for role...</h2>
+<p id="roleInfo" class="muted"></p>
 </div>
 
+<div class="panel">
+<h2>Players</h2>
+<div id="players" class="grid"></div>
 </div>
+
+<div class="panel">
+<h2>Game Action</h2>
+<div id="stage">Waiting for players...</div>
+<div id="actions"></div>
+</div>
+
+<div class="panel">
+<h2>Scoreboard</h2>
+<div id="scores"></div>
+</div>
+
+<div class="panel">
+<h3>Scoring Rules</h3>
+<p>Badshah: 1000 points</p>
+<p>Sipahi: 300 points</p>
+<p>Correct guess: Wazir gets 500 points</p>
+<p>Wrong guess: Chor gets 500 points</p>
+<p class="muted">The game requires four players.</p>
+<button id="leave" class="secondary">Leave Room</button>
+</div>
+</section>
+</main>
 
 <script type="module">
-
-// FIREBASE SDK
-import { initializeApp }
+import {initializeApp}
 from "https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js";
 
-import {
-  getAuth,
-  signInAnonymously,
-  onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js";
+import {getAuth,signInAnonymously,onAuthStateChanged}
+from "https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js";
 
 import {
-  getDatabase,
-  ref,
-  set,
-  get,
-  onValue,
-  update,
-  runTransaction,
-  remove
+getDatabase,ref,set,get,update,onValue,runTransaction
 } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-database.js";
 
-// FIREBASE CONFIGURATION
-const firebaseConfig = {
-  apiKey: "AIzaSyDOB_Wq2W__OGB9TPbi67MsjFi4w4lQgXg",
-  authDomain: "badshah-ka-wazir.firebaseapp.com",
-  projectId: "badshah-ka-wazir",
-  storageBucket: "badshah-ka-wazir.firebasestorage.app",
-  messagingSenderId: "864364063528",
-  appId: "1:864364063528:web:70e36982d4936b74773e1d",
-  databaseURL: "https://badshah-ka-wazir-default-rtdb.asia-southeast1.firebasedatabase.app"
+const firebaseConfig={
+apiKey:"AIzaSyDOB_Wq2W__OGB9TPbi67MsjFi4w4lQgXg",
+authDomain:"badshah-ka-wazir.firebaseapp.com",
+projectId:"badshah-ka-wazir",
+storageBucket:"badshah-ka-wazir.firebasestorage.app",
+messagingSenderId:"864364063528",
+appId:"1:864364063528:web:70e36982d4936b74773e1d",
+databaseURL:"https://badshah-ka-wazir-default-rtdb.asia-southeast1.firebasedatabase.app"
 };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getDatabase(app);
+const app=initializeApp(firebaseConfig);
+const auth=getAuth(app);
+const db=getDatabase(app);
 
-// GAME VARIABLES
-let currentUser = null;
-let currentRoom = null;
-let roomData = null;
-let myRole = null;
-let selectedPlayer = null;
-let isHost = false;
-let listeners = [];
-let busy = false;
+const $=id=>document.getElementById(id);
+let uid=null,room=null,roomData=null,myPrivate=null;
+let host=false,roleMap={},working=false,unsubs=[];
+let processedGuess=null;
 
-const $ = id => document.getElementById(id);
-
-function showMessage(text, error=false){
-  $("message").textContent = text;
-  $("message").className = error ? "panel error" : "panel muted";
+function msg(t,error=false){
+$("message").textContent=t;
+$("message").className=error?"panel":"panel muted";
+$("message").style.color=error?"#ff8585":"";
+}
+function clean(s){return s.trim().replace(/\s+/g," ").slice(0,20)}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function path(p=""){return "rooms/"+room+(p?"/"+p:"")}
+function members(){return roomData?.members||{}}
+function shuffle(a){
+a=[...a];
+for(let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}
+return a;
+}
+function code(){
+const chars="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+return Array.from({length:4},()=>chars[Math.floor(Math.random()*chars.length)]).join("");
 }
 
-function roomPath(){
-  return "rooms/" + currentRoom;
+onAuthStateChanged(auth,async user=>{
+if(user){
+uid=user.uid;
+$("entry").classList.remove("hidden");
+msg("Connected. Create a room or join a room.");
+}else{
+try{await signInAnonymously(auth)}
+catch(e){msg("Authentication failed: "+e.message,true)}
 }
-
-function playerList(){
-  return roomData?.players || {};
-}
-
-function playerName(uid){
-  return playerList()[uid]?.name || "Player";
-}
-
-function cleanName(value){
-  return value.trim().replace(/\s+/g," ").slice(0,20);
-}
-
-function makeCode(){
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  let code = "";
-  for(let i=0;i<4;i++){
-    code += chars[Math.floor(Math.random()*chars.length)];
-  }
-  return code;
-}
-
-function shuffle(array){
-  const a = [...array];
-  for(let i=a.length-1;i>0;i--){
-    const j=Math.floor(Math.random()*(i+1));
-    [a[i],a[j]]=[a[j],a[i]];
-  }
-  return a;
-}
-
-function escapeHTML(value){
-  return String(value).replace(/[&<>"']/g, c => ({
-    "&":"&amp;","<":"&lt;",">":"&gt;",
-    '"':"&quot;","'":"&#039;"
-  }[c]));
-}
-
-// AUTHENTICATION
-onAuthStateChanged(auth, async user => {
-  if(user){
-    currentUser = user;
-    $("entry").classList.remove("hidden");
-    showMessage("Connected to Firebase. You can create or join a room.");
-  }else{
-    try{
-      await signInAnonymously(auth);
-    }catch(error){
-      showMessage("Authentication error: " + error.message,true);
-    }
-  }
 });
 
-// CREATE ROOM
-$("createBtn").onclick = async () => {
-  if(busy) return;
-
-  const name = cleanName($("playerName").value);
-  if(!name){
-    showMessage("Please enter your name.",true);
-    return;
-  }
-
-  busy = true;
-
-  try{
-    let code;
-    let exists = true;
-
-    while(exists){
-      code = makeCode();
-      const snapshot = await get(ref(db,"rooms/"+code));
-      exists = snapshot.exists();
-    }
-
-    const initialData = {
-      host: currentUser.uid,
-      status: "waiting",
-      round: 0,
-      phase: "lobby",
-      players: {
-        [currentUser.uid]: {
-          name,
-          score: 0,
-          connected: true
-        }
-      },
-      roles: {},
-      guessOptions: {},
-      selectedPlayer: null,
-      result: null
-    };
-
-    await set(ref(db,"rooms/"+code),initialData);
-    await enterRoom(code);
-
-  }catch(error){
-    showMessage("Could not create room: "+error.message,true);
-  }
-
-  busy = false;
+$("create").onclick=async()=>{
+if(working)return;
+const name=clean($("name").value);
+if(!name)return msg("Enter your name.",true);
+working=true;
+try{
+let c,exists=true;
+while(exists){c=code();exists=(await get(ref(db,"rooms/"+c))).exists()}
+const data={
+host:uid,
+members:{[uid]:{name,score:0}},
+public:{round:0,phase:"lobby",guess:null,revealedRoles:null}
+};
+await set(ref(db,"rooms/"+c),data);
+await enter(c);
+}catch(e){msg("Create error: "+e.message,true)}
+working=false;
 };
 
-// JOIN ROOM
-$("joinBtn").onclick = async () => {
-  if(busy) return;
-
-  const name = cleanName($("playerName").value);
-  const code = $("roomCodeInput").value.trim().toUpperCase();
-
-  if(!name){
-    showMessage("Please enter your name.",true);
-    return;
-  }
-
-  if(!/^[A-Z0-9]{4}$/.test(code)){
-    showMessage("Enter a valid 4-character room code.",true);
-    return;
-  }
-
-  busy = true;
-
-  try{
-    const roomRef = ref(db,"rooms/"+code);
-
-    const result = await runTransaction(roomRef, room => {
-      if(!room) return;
-      if(room.phase !== "lobby") return;
-
-      room.players = room.players || {};
-
-      if(Object.keys(room.players).length >= 4) return;
-
-      const duplicate = Object.values(room.players)
-        .some(p => p.name.toLowerCase() === name.toLowerCase());
-
-      if(duplicate) return;
-
-      room.players[currentUser.uid] = {
-        name,
-        score: 0,
-        connected: true
-      };
-
-      return room;
-    });
-
-    if(!result.committed){
-      throw new Error("Room unavailable, full, or game already started.");
-    }
-
-    await enterRoom(code);
-
-  }catch(error){
-    showMessage("Could not join room: "+error.message,true);
-  }
-
-  busy = false;
+$("join").onclick=async()=>{
+if(working)return;
+const name=clean($("name").value);
+const c=$("code").value.trim().toUpperCase();
+if(!name)return msg("Enter your name.",true);
+if(!/^[A-Z0-9]{4}$/.test(c))return msg("Enter a valid room code.",true);
+working=true;
+try{
+const result=await runTransaction(ref(db,"rooms/"+c+"/members"),old=>{
+if(old===null)return;
+old=old||{};
+if(Object.keys(old).length>=4)return;
+if(Object.values(old).some(p=>p.name.toLowerCase()===name.toLowerCase()))return;
+old[uid]={name,score:0};
+return old;
+});
+if(!result.committed)throw Error("Room is full, unavailable, or name already used.");
+const snap=await get(ref(db,"rooms/"+c+"/public/phase"));
+if(snap.val()!=="lobby"){
+await import("https://www.gstatic.com/firebasejs/13.1.0/firebase-database.js").then(async m=>m.remove(ref(db,"rooms/"+c+"/members/"+uid)));
+throw Error("This game has already started.");
+}
+await enter(c);
+}catch(e){msg("Join error: "+e.message,true)}
+working=false;
 };
 
-// ENTER ROOM
-async function enterRoom(code){
-  currentRoom = code;
+async function enter(c){
+room=c;
+$("entry").classList.add("hidden");
+$("game").classList.remove("hidden");
+$("roomCode").textContent=c;
+$("myName").textContent=clean($("name").value);
+unsubs.forEach(f=>f());
+unsubs=[];
 
-  $("entry").classList.add("hidden");
-  $("game").classList.remove("hidden");
-  $("roomCode").textContent = code;
+unsubs.push(onValue(ref(db,path("public")),snap=>{
+if(!snap.exists())return;
+roomData=roomData||{};
+roomData.public=snap.val();
+render();
+if(host)processGuess();
+}));
 
-  const roomRef = ref(db,roomPath());
+unsubs.push(onValue(ref(db,path("members")),snap=>{
+roomData=roomData||{};
+roomData.members=snap.val()||{};
+render();
+}));
 
-  listeners.forEach(unsubscribe=>unsubscribe());
-  listeners = [];
+unsubs.push(onValue(ref(db,path("private/"+uid)),snap=>{
+myPrivate=snap.val();
+render();
+}));
 
-  listeners.push(onValue(roomRef,snapshot=>{
-    if(!snapshot.exists()){
-      showMessage("This room no longer exists.",true);
-      return;
-    }
+unsubs.push(onValue(ref(db,path("host")),snap=>{
+host=snap.val()===uid;
+render();
+}));
 
-    roomData = snapshot.val();
-    isHost = roomData.host === currentUser.uid;
-
-    myRole = roomData.roles?.[currentUser.uid] || null;
-
-    renderGame();
-  }));
-
-  showMessage("Joined room successfully.");
+msg("Joined room "+c);
 }
 
-// RENDER GAME
-function renderGame(){
-  if(!roomData) return;
+function render(){
+if(!roomData?.public||!roomData?.members)return;
+const pub=roomData.public,mem=members();
+$("round").textContent=pub.round||0;
+$("phase").textContent=pub.phase||"lobby";
+$("myName").textContent=mem[uid]?.name||"Player";
+$("myRole").textContent=myPrivate?.role||"Waiting for role...";
+$("roleInfo").textContent=
+myPrivate?.role==="Badshah"?"You are the Badshah.":
+myPrivate?.role==="Wazir"?"Select the correct Chor from the two name cards.":
+myPrivate?.role==="Sipahi"?"Your role is private.":
+myPrivate?.role==="Chor"?"Your role is private.": "";
 
-  $("roomCode").textContent = currentRoom;
-  $("roundNumber").textContent = roomData.round || 0;
-  $("phase").textContent = roomData.phase || "lobby";
+$("players").innerHTML=Object.entries(mem).map(([id,p])=>{
+const revealed=pub.phase==="reveal"||pub.phase==="ended";
+const role=revealed?(pub.revealedRoles?.[id]||""):(id===uid?(myPrivate?.role||""):"");
+return `<div class="player"><b>${esc(p.name)}</b><p>${esc(role)}</p></div>`;
+}).join("");
 
-  $("myName").textContent = playerName(currentUser.uid);
-  $("myRole").textContent = myRole ? "Your role: "+myRole : "Waiting for role assignment.";
+$("scores").innerHTML=Object.values(mem)
+.sort((a,b)=>(b.score||0)-(a.score||0))
+.map(p=>`<div class="row"><span>${esc(p.name)}</span><b class="gold">${p.score||0}</b></div>`).join("");
 
-  $("roleMessage").textContent =
-    myRole === "Badshah" ? "You are the Badshah!" :
-    myRole === "Wazir" ? "Find the Chor by selecting one name card." :
-    myRole === "Sipahi" ? "Your identity is hidden." :
-    myRole === "Chor" ? "Your identity is hidden." : "";
-
-  renderPlayers();
-  renderScoreboard();
-  renderActions();
-}
-
-function renderPlayers(){
-  const players = playerList();
-
-  $("players").innerHTML = Object.entries(players).map(([uid,p])=>{
-    let roleText = "";
-
-    if(roomData.phase === "reveal" || roomData.phase === "ended"){
-      roleText = roomData.roles?.[uid] || "";
-    }else if(uid === currentUser.uid && myRole){
-      roleText = myRole;
-    }else if(uid === roomData.host){
-      roleText = "Room Host";
-    }
-
-    return `
-      <div class="player">
-        <strong>${escapeHTML(p.name)}</strong>
-        <div class="small">${escapeHTML(roleText)}</div>
-        <div class="small">${p.connected ? "Online" : "Offline"}</div>
-      </div>
-    `;
-  }).join("");
-}
-
-function renderScoreboard(){
-  const players = playerList();
-
-  $("scoreboard").innerHTML = Object.entries(players)
-    .sort((a,b)=>(b[1].score||0)-(a[1].score||0))
-    .map(([uid,p])=>`
-      <div class="score-row">
-        <span>${escapeHTML(p.name)}</span>
-        <strong class="gold">${p.score||0}</strong>
-      </div>
-    `).join("");
+renderActions();
 }
 
 function renderActions(){
-  const area = $("actionArea");
-  area.innerHTML = "";
+const pub=roomData.public;
+const area=$("actions");
+area.innerHTML="";
+const phase=pub.phase;
+const count=Object.keys(members()).length;
 
-  const phase = roomData.phase;
-  const count = Object.keys(playerList()).length;
-
-  if(phase === "lobby"){
-    $("stageMessage").textContent =
-      `Waiting for four players. ${count}/4 players joined.`;
-
-    if(isHost){
-      const button=document.createElement("button");
-      button.textContent="Start Game";
-      button.disabled=count!==4;
-      button.onclick=startRound;
-      area.appendChild(button);
-    }
-    return;
-  }
-
-  if(phase === "question"){
-    $("stageMessage").textContent =
-      myRole === "Badshah"
-      ? "You are the Badshah. Start the Wazir's guessing turn."
-      : "Waiting for the Badshah.";
-
-    if(myRole==="Badshah"){
-      const button=document.createElement("button");
-      button.textContent="Continue to Wazir Guess";
-      button.onclick=goToAnswer;
-      area.appendChild(button);
-    }
-    return;
-  }
-
-  if(phase === "answer"){
-    $("stageMessage").textContent =
-      myRole==="Wazir"
-      ? "Select one of the two name cards. Find the Chor!"
-      : "Wazir is selecting one of the two name cards.";
-
-    if(myRole==="Wazir"){
-      const options=roomData.guessOptions || {};
-
-      Object.entries(options).forEach(([uid,name])=>{
-        const card=document.createElement("div");
-        card.className="card";
-        card.textContent=name;
-        card.onclick=()=>{
-          selectedPlayer=uid;
-          document.querySelectorAll(".card").forEach(c=>c.classList.remove("selected"));
-          card.classList.add("selected");
-
-          const confirm=document.createElement("button");
-          confirm.textContent="Confirm My Guess";
-          confirm.onclick=()=>submitGuess(uid);
-          area.querySelectorAll("button").forEach(b=>b.remove());
-          area.appendChild(confirm);
-        };
-        area.appendChild(card);
-      });
-    }
-    return;
-  }
-
-  if(phase==="reveal"){
-    $("stageMessage").textContent="Round completed. Here are the results.";
-
-    const result=roomData.result || {};
-    const details=document.createElement("div");
-
-    details.innerHTML=`
-      <h3 class="gold">Round Result</h3>
-      <p>Wazir selected: ${escapeHTML(result.selectedName||"-")}</p>
-      <p>Actual Chor: ${escapeHTML(result.chorName||"-")}</p>
-      <p>${result.correct ? "Correct guess!" : "Wrong guess!"}</p>
-      <p>${escapeHTML(result.message||"")}</p>
-      <h3>All Roles</h3>
-      ${Object.entries(roomData.roles||{}).map(([uid,role])=>
-        `<p>${escapeHTML(playerName(uid))}: ${escapeHTML(role)}</p>`
-      ).join("")}
-    `;
-
-    area.appendChild(details);
-
-    if(isHost){
-      const next=document.createElement("button");
-      next.textContent="Next Round";
-      next.onclick=startRound;
-      area.appendChild(next);
-
-      const end=document.createElement("button");
-      end.textContent="End Game";
-      end.className="secondary";
-      end.onclick=endGame;
-      area.appendChild(end);
-    }
-    return;
-  }
-
-  if(phase==="ended"){
-    $("stageMessage").textContent="Game ended.";
-  }
+if(phase==="lobby"){
+$("stage").textContent=`Waiting for players: ${count}/4`;
+if(host){
+const b=document.createElement("button");
+b.textContent="Start Game";
+b.disabled=count!==4;
+b.onclick=startRound;
+area.append(b);
+}
+return;
 }
 
-// START ROUND
+if(phase==="question"){
+$("stage").textContent=myPrivate?.role==="Badshah"?
+"You are Badshah. Start Wazir's turn.":
+"Waiting for Badshah to continue.";
+if(myPrivate?.role==="Badshah"){
+const b=document.createElement("button");
+b.textContent="Continue to Wazir Guess";
+b.onclick=()=>update(ref(db,path("public")),{phase:"answer"});
+area.append(b);
+}
+return;
+}
+
+if(phase==="answer"){
+$("stage").textContent=myPrivate?.role==="Wazir"?
+"Choose one of the two names.":
+"Wazir is making a guess.";
+if(myPrivate?.role==="Wazir"&&myPrivate.options){
+Object.entries(myPrivate.options).forEach(([id,name])=>{
+const b=document.createElement("button");
+b.className="card";
+b.textContent=name;
+b.onclick=async()=>{
+if(!confirm("Select "+name+" as your guess?"))return;
+try{
+await set(ref(db,path("public/guess")),{uid:id,by:uid,round:pub.round});
+}catch(e){msg("Guess failed: "+e.message,true)}
+};
+area.append(b);
+});
+}
+return;
+}
+
+if(phase==="reveal"){
+$("stage").textContent="Round completed.";
+const r=pub.result||{};
+area.innerHTML=`<h3 class="gold">${r.correct?"Correct Guess!":"Wrong Guess!"}</h3>
+<p>Wazir selected: ${esc(r.selectedName||"-")}</p>
+<p>Actual Chor: ${esc(r.chorName||"-")}</p>
+<p>${esc(r.message||"")}</p>
+<h3>All Roles</h3>
+${Object.entries(pub.revealedRoles||{}).map(([id,role])=>`<p>${esc(members()[id]?.name||"Player")}: ${esc(role)}</p>`).join("")}`;
+if(host){
+const b=document.createElement("button");
+b.textContent="Next Round";b.onclick=startRound;area.append(b);
+const e=document.createElement("button");
+e.className="secondary";e.textContent="End Game";
+e.onclick=()=>update(ref(db,path("public")),{phase:"ended"});
+area.append(e);
+}
+return;
+}
+if(phase==="ended")$("stage").textContent="Game ended.";
+}
+
 async function startRound(){
-  if(!isHost || busy) return;
-
-  const players=playerList();
-  const ids=Object.keys(players);
-
-  if(ids.length!==4){
-    showMessage("Exactly four players are required.",true);
-    return;
-  }
-
-  busy=true;
-
-  try{
-    const roles=shuffle(["Badshah","Wazir","Sipahi","Chor"]);
-    const roleMap={};
-
-    ids.forEach((uid,index)=>{
-      roleMap[uid]=roles[index];
-    });
-
-    const nextRound=(roomData.round||0)+1;
-
-    const options={};
-    ids.forEach(uid=>{
-      if(roleMap[uid]==="Sipahi" || roleMap[uid]==="Chor"){
-        options[uid]=players[uid].name;
-      }
-    });
-
-    const updates={};
-
-    updates[roomPath()+"/roles"]=roleMap;
-    updates[roomPath()+"/round"]=nextRound;
-    updates[roomPath()+"/phase"]="question";
-    updates[roomPath()+"/guessOptions"]=options;
-    updates[roomPath()+"/selectedPlayer"]=null;
-    updates[roomPath()+"/result"]=null;
-
-    await update(ref(db),updates);
-
-    showMessage("New round started.");
-
-  }catch(error){
-    showMessage("Could not start round: "+error.message,true);
-  }
-
-  busy=false;
+if(!host||working)return;
+const ids=Object.keys(members());
+if(ids.length!==4)return msg("Exactly four players are required.",true);
+working=true;
+try{
+const roles=shuffle(["Badshah","Wazir","Sipahi","Chor"]);
+roleMap={};
+const privateData={};
+ids.forEach((id,i)=>{
+roleMap[id]=roles[i];
+privateData[id]={role:roles[i]};
+});
+const sipahi=ids.find(id=>roleMap[id]==="Sipahi");
+const chor=ids.find(id=>roleMap[id]==="Chor");
+const wazir=ids.find(id=>roleMap[id]==="Wazir");
+privateData[wazir].options={
+[sipahi]:members()[sipahi].name,
+[chor]:members()[chor].name
+};
+const round=(roomData.public.round||0)+1;
+await set(ref(db,path("private")),privateData);
+await update(ref(db,path("public")),{
+round,phase:"question",guess:null,result:null,revealedRoles:null
+});
+processedGuess=null;
+msg("New round started.");
+}catch(e){msg("Start round error: "+e.message,true)}
+working=false;
 }
 
-// BADSHAH CONTINUES
-async function goToAnswer(){
-  if(myRole!=="Badshah" || roomData.phase!=="question") return;
-
-  try{
-    await update(ref(db,roomPath()),{
-      phase:"answer"
-    });
-  }catch(error){
-    showMessage(error.message,true);
-  }
+async function processGuess(){
+const pub=roomData.public;
+if(!host||pub.phase!=="answer"||!pub.guess||!roleMap||Object.keys(roleMap).length!==4)return;
+if(processedGuess===pub.round)return;
+processedGuess=pub.round;
+try{
+const guess=pub.guess.uid;
+const chor=Object.keys(roleMap).find(id=>roleMap[id]==="Chor");
+const sipahi=Object.keys(roleMap).find(id=>roleMap[id]==="Sipahi");
+const badshah=Object.keys(roleMap).find(id=>roleMap[id]==="Badshah");
+const wazir=Object.keys(roleMap).find(id=>roleMap[id]==="Wazir");
+const correct=guess===chor;
+const mem=members();
+const scores={};
+Object.keys(mem).forEach(id=>scores[id]=mem[id].score||0);
+scores[badshah]+=1000;
+scores[sipahi]+=300;
+if(correct)scores[wazir]+=500;
+else scores[chor]+=500;
+const updates={};
+Object.entries(scores).forEach(([id,score])=>{
+updates["members/"+id+"/score"]=score;
+});
+updates["public/phase"]="reveal";
+updates["public/revealedRoles"]=roleMap;
+updates["public/result"]={
+correct,
+selectedName:mem[guess]?.name||"",
+chorName:mem[chor]?.name||"",
+message:correct?"Wazir receives 500 points.":"Chor receives 500 points."
+};
+await update(ref(db,path()),updates);
+}catch(e){
+processedGuess=null;
+msg("Scoring error: "+e.message,true);
+}
 }
 
-// WAZIR GUESS
-async function submitGuess(uid){
-  if(myRole!=="Wazir" || roomData.phase!=="answer") return;
-  if(busy) return;
-
-  busy=true;
-
-  try{
-    const roles=roomData.roles || {};
-    const players=playerList();
-
-    const chorUid=Object.keys(roles).find(id=>roles[id]==="Chor");
-    const sipahiUid=Object.keys(roles).find(id=>roles[id]==="Sipahi");
-
-    if(!chorUid || !sipahiUid){
-      throw new Error("Round roles are incomplete.");
-    }
-
-    const correct=uid===chorUid;
-
-    const scoreChanges={};
-
-    // Badshah gets 1000 points
-    const badshahUid=Object.keys(roles).find(id=>roles[id]==="Badshah");
-    scoreChanges[badshahUid]=1000;
-
-    // Sipahi gets 300 points
-    scoreChanges[sipahiUid]=300;
-
-    // Correct: Wazir gets 500.
-    // Wrong: Chor gets 500.
-    if(correct){
-      scoreChanges[currentUser.uid]=(scoreChanges[currentUser.uid]||0)+500;
-    }else{
-      scoreChanges[chorUid]=(scoreChanges[chorUid]||0)+500;
-    }
-
-    const updates={};
-
-    Object.entries(scoreChanges).forEach(([id,points])=>{
-      updates[roomPath()+"/players/"+id+"/score"]=
-        (players[id].score||0)+points;
-    });
-
-    updates[roomPath()+"/selectedPlayer"]=uid;
-    updates[roomPath()+"/phase"]="reveal";
-    updates[roomPath()+"/result"]={
-      selectedName:players[uid].name,
-      chorName:players[chorUid].name,
-      correct,
-      message:correct
-        ? "Wazir guessed correctly. Wazir receives 500 points."
-        : "Wazir guessed incorrectly. Chor receives 500 points."
-    };
-
-    await update(ref(db),updates);
-
-    showMessage("Guess submitted.");
-
-  }catch(error){
-    showMessage("Guess error: "+error.message,true);
-  }
-
-  busy=false;
-}
-
-// END GAME
-async function endGame(){
-  if(!isHost) return;
-
-  try{
-    await update(ref(db,roomPath()),{
-      phase:"ended"
-    });
-  }catch(error){
-    showMessage(error.message,true);
-  }
-}
-
-// LEAVE ROOM
-$("leaveBtn").onclick=async()=>{
-  if(!currentRoom) return;
-
-  try{
-    await remove(ref(db,roomPath()+"/players/"+currentUser.uid));
-    location.reload();
-  }catch(error){
-    showMessage("Could not leave room: "+error.message,true);
-  }
+$("copy").onclick=async()=>{
+try{await navigator.clipboard.writeText(room);msg("Room code copied: "+room)}
+catch(e){msg("Room code: "+room)}
 };
 
+$("leave").onclick=()=>{
+if(!room)return;
+msg("You have left the room. Reloading...");
+location.reload();
+};
 </script>
 </body>
 </html>
-
