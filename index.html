@@ -3,410 +3,558 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Badshah Ka Wazir Online</title>
+<title>Badshah Ka Wazir - Online Game</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;padding:15px;background:#10131e;color:#fff;font-family:Arial,sans-serif}
-main{max-width:850px;margin:auto}
-h1{text-align:center;color:#f5c75e}
-.panel{background:#1c2232;border:1px solid #3d465c;border-radius:14px;padding:16px;margin:14px 0}
-input{width:100%;padding:13px;margin:7px 0;background:#101522;color:white;border:1px solid #59627a;border-radius:8px;font-size:16px}
-button{padding:13px 17px;margin:5px 0;background:#e8b94e;color:#171717;border:0;border-radius:8px;font-weight:bold;cursor:pointer}
-button.secondary{background:#46516b;color:white}
-button:disabled{opacity:.4}
+body{margin:0;padding:16px;background:#101827;color:#f8fafc;font-family:Arial,sans-serif}
+.container{max-width:760px;margin:auto}
+h1{text-align:center;color:#facc15;margin:12px 0}
+.subtitle{text-align:center;color:#cbd5e1;margin-bottom:22px}
+.panel{background:#1e293b;border:1px solid #334155;border-radius:14px;padding:18px;margin:14px 0}
+input{width:100%;padding:13px;margin:7px 0;border-radius:8px;border:1px solid #64748b;background:#0f172a;color:white;font-size:16px}
+button{border:0;border-radius:8px;padding:13px 16px;margin:5px 3px;cursor:pointer;font-size:15px;font-weight:bold;background:#eab308;color:#111827}
+button:disabled{opacity:.45;cursor:not-allowed}
+.full{width:100%;margin:7px 0}
+.secondary{background:#475569;color:white}
 .hidden{display:none!important}
-.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
-.player,.card{background:#2a3248;border:1px solid #59627a;border-radius:10px;padding:15px;text-align:center}
-.card{border:2px solid #e8b94e;cursor:pointer;font-size:18px}
-.card.selected{background:#695322}
-.gold{color:#f5c75e}
-.muted{color:#b6bdcc}
-.row{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid #3d465c}
-#message{white-space:pre-wrap}
-@media(max-width:480px){body{padding:8px}.grid{grid-template-columns:1fr 1fr}button{width:100%}}
+.status{color:#93c5fd;font-weight:bold}
+.muted{color:#cbd5e1}
+.player{display:flex;justify-content:space-between;gap:10px;padding:12px;margin:7px 0;background:#0f172a;border-radius:8px}
+.card{background:#334155;padding:18px;border-radius:12px;text-align:center;margin:8px 0}
+.role{color:#facc15;font-size:26px;font-weight:bold}
+.points{color:#86efac;font-weight:bold}
+.option{width:100%;background:#2563eb;color:white;margin:8px 0}
+.error{color:#fca5a5;white-space:pre-wrap}
+.success{color:#86efac}
+hr{border:0;border-top:1px solid #475569;margin:18px 0}
+@media(max-width:480px){body{padding:10px}.panel{padding:13px}}
 </style>
 </head>
 <body>
-<main>
-<h1>♛ BADSHAH KA WAZIR ♛</h1>
-<p style="text-align:center" class="muted">Four Players • Online Multiplayer</p>
+<div class="container">
+<h1>👑 BADSHAH KA WAZIR</h1>
+<div class="subtitle">Online Multiplayer Game</div>
 
-<div id="message" class="panel muted">Connecting...</div>
-
-<section id="entry" class="panel hidden">
+<section id="loginPanel" class="panel">
 <h2>Enter Game</h2>
-<input id="name" maxlength="20" placeholder="Your name">
-<button id="create">Create Room</button>
+<input id="playerName" maxlength="20" placeholder="Enter your name">
+<button id="createBtn" class="full">Create New Room</button>
 <hr>
-<input id="code" maxlength="4" placeholder="4-character room code">
-<button id="join" class="secondary">Join Room</button>
+<input id="roomCodeInput" maxlength="6" placeholder="Enter 6-character room code">
+<button id="joinBtn" class="full secondary">Join Room</button>
+<p id="loginMessage" class="error"></p>
 </section>
 
-<section id="game" class="hidden">
+<section id="gamePanel" class="hidden">
 <div class="panel">
-<div class="row"><span>Room Code</span><b id="roomCode" class="gold"></b></div>
-<div class="row"><span>Round</span><b id="round">0</b></div>
-<div class="row"><span>Phase</span><b id="phase">Lobby</b></div>
-<button id="copy" class="secondary">Copy Room Code</button>
+<div>Room Code: <strong id="roomCodeLabel"></strong></div>
+<p class="muted">Share this code with the other three players.</p>
+<div id="gameStatus" class="status">Connecting...</div>
 </div>
 
 <div class="panel">
-<h2>Your Identity</h2>
-<h3 id="myName" class="gold"></h3>
-<h2 id="myRole">Waiting for role...</h2>
-<p id="roleInfo" class="muted"></p>
+<h2>Players & Scores</h2>
+<div id="playersList"></div>
 </div>
 
 <div class="panel">
-<h2>Players</h2>
-<div id="players" class="grid"></div>
+<h2>Your Role</h2>
+<div id="roleArea" class="card">Waiting for the round to start.</div>
+<div id="wazirArea" class="hidden">
+<h3>Wazir: Identify the Chor</h3>
+<p class="muted">Select one of these two players.</p>
+<div id="wazirOptions"></div>
+</div>
+<div id="revealArea" class="hidden">
+<h3>Round Result</h3>
+<div id="revealList"></div>
+</div>
 </div>
 
 <div class="panel">
-<h2>Game Action</h2>
-<div id="stage">Waiting for players...</div>
-<div id="actions"></div>
+<h2>Host Controls</h2>
+<button id="startBtn" class="full hidden">Start Round</button>
+<p id="hostMessage" class="muted"></p>
 </div>
-
-<div class="panel">
-<h2>Scoreboard</h2>
-<div id="scores"></div>
-</div>
-
-<div class="panel">
-<h3>Scoring Rules</h3>
-<p>Badshah: 1000 points</p>
-<p>Sipahi: 300 points</p>
-<p>Correct guess: Wazir gets 500 points</p>
-<p>Wrong guess: Chor gets 500 points</p>
-<p class="muted">The game requires four players.</p>
-<button id="leave" class="secondary">Leave Room</button>
-</div>
+<p id="gameMessage" class="error"></p>
 </section>
-</main>
+</div>
 
 <script type="module">
-import {initializeApp}
-from "https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js";
-
-import {getAuth,signInAnonymously,onAuthStateChanged}
-from "https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js";
-
+import { initializeApp } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js";
 import {
-getDatabase,ref,set,get,update,onValue,runTransaction
+  getDatabase, ref, get, set, update, onValue
 } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-database.js";
 
-const firebaseConfig={
-apiKey:"AIzaSyDOB_Wq2W__OGB9TPbi67MsjFi4w4lQgXg",
-authDomain:"badshah-ka-wazir.firebaseapp.com",
-projectId:"badshah-ka-wazir",
-storageBucket:"badshah-ka-wazir.firebasestorage.app",
-messagingSenderId:"864364063528",
-appId:"1:864364063528:web:70e36982d4936b74773e1d",
-databaseURL:"https://badshah-ka-wazir-default-rtdb.asia-southeast1.firebasedatabase.app"
+const firebaseConfig = {
+  apiKey: "AIzaSyDOB_Wq2W__OGB9TPbi67MsjFi4w4lQgXg",
+  authDomain: "badshah-ka-wazir.firebaseapp.com",
+  databaseURL: "https://badshah-ka-wazir-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "badshah-ka-wazir",
+  storageBucket: "badshah-ka-wazir.firebasestorage.app",
+  messagingSenderId: "864364063528",
+  appId: "1:864364063528:web:70e36982d4936b74773e1d"
 };
 
-const app=initializeApp(firebaseConfig);
-const auth=getAuth(app);
-const db=getDatabase(app);
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app);
 
-const $=id=>document.getElementById(id);
-let uid=null,room=null,roomData=null,myPrivate=null;
-let host=false,roleMap={},working=false,unsubs=[];
-let processedGuess=null;
+let uid = null;
+let roomCode = null;
+let roomData = { members: {}, public: {}, host: null };
+let myPrivate = null;
+let processingRound = false;
+let listenersStarted = false;
 
-function msg(t,error=false){
-$("message").textContent=t;
-$("message").className=error?"panel":"panel muted";
-$("message").style.color=error?"#ff8585":"";
-}
-function clean(s){return s.trim().replace(/\s+/g," ").slice(0,20)}
-function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-function path(p=""){return "rooms/"+room+(p?"/"+p:"")}
-function members(){return roomData?.members||{}}
-function shuffle(a){
-a=[...a];
-for(let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}
-return a;
-}
-function code(){
-const chars="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-return Array.from({length:4},()=>chars[Math.floor(Math.random()*chars.length)]).join("");
-}
+const $ = id => document.getElementById(id);
+const roomPath = () => `rooms/${roomCode}`;
 
-onAuthStateChanged(auth,async user=>{
-if(user){
-uid=user.uid;
-$("entry").classList.remove("hidden");
-msg("Connected. Create a room or join a room.");
-}else{
-try{await signInAnonymously(auth)}
-catch(e){msg("Authentication failed: "+e.message,true)}
-}
+const authReady = signInAnonymously(auth).then(result => {
+  uid = result.user.uid;
+  return uid;
 });
 
-$("create").onclick=async()=>{
-if(working)return;
-const name=clean($("name").value);
-if(!name)return msg("Enter your name.",true);
-working=true;
-try{
-let c,exists=true;
-while(exists){c=code();exists=(await get(ref(db,"rooms/"+c))).exists()}
-const data={
-host:uid,
-members:{[uid]:{name,score:0}},
-public:{round:0,phase:"lobby",guess:null,revealedRoles:null}
-};
-await set(ref(db,"rooms/"+c),data);
-await enter(c);
-}catch(e){msg("Create error: "+e.message,true)}
-working=false;
-};
+function message(id, text) {
+  $(id).textContent = text || "";
+}
 
-$("join").onclick=async()=>{
-if(working)return;
-const name=clean($("name").value);
-const c=$("code").value.trim().toUpperCase();
-if(!name)return msg("Enter your name.",true);
-if(!/^[A-Z0-9]{4}$/.test(c))return msg("Enter a valid room code.",true);
-working=true;
-try{
-const result=await runTransaction(ref(db,"rooms/"+c+"/members"),old=>{
-if(old===null)return;
-old=old||{};
-if(Object.keys(old).length>=4)return;
-if(Object.values(old).some(p=>p.name.toLowerCase()===name.toLowerCase()))return;
-old[uid]={name,score:0};
-return old;
+function cleanName(value) {
+  return value.trim().replace(/\s+/g, " ").slice(0, 20);
+}
+
+function makeCode() {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let code = "";
+  for (let i = 0; i < 6; i++) {
+    code += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return code;
+}
+
+function shuffle(array) {
+  const result = [...array];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
+
+async function createRoom() {
+  message("loginMessage", "");
+  const name = cleanName($("playerName").value);
+  if (!name) {
+    message("loginMessage", "Please enter your name.");
+    return;
+  }
+
+  $("createBtn").disabled = true;
+
+  try {
+    await authReady;
+
+    let code = null;
+    for (let i = 0; i < 10; i++) {
+      const candidate = makeCode();
+      const existing = await get(ref(db, `rooms/${candidate}/public`));
+      if (!existing.exists()) {
+        code = candidate;
+        break;
+      }
+    }
+    if (!code) throw new Error("Could not create a room. Please try again.");
+
+    await set(ref(db, `rooms/${code}`), {
+      host: uid,
+      members: {
+        [uid]: { name, score: 0 }
+      },
+      public: {
+        round: 0,
+        phase: "lobby",
+        guess: null,
+        revealedRoles: null
+      },
+      private: {}
+    });
+
+    enterRoom(code);
+  } catch (error) {
+    message("loginMessage", error.message);
+  } finally {
+    $("createBtn").disabled = false;
+  }
+}
+
+async function joinRoom() {
+  message("loginMessage", "");
+  const name = cleanName($("playerName").value);
+  const code = $("roomCodeInput").value.trim().toUpperCase();
+
+  if (!name) {
+    message("loginMessage", "Please enter your name.");
+    return;
+  }
+  if (!/^[A-Z0-9]{6}$/.test(code)) {
+    message("loginMessage", "Please enter a valid 6-character room code.");
+    return;
+  }
+
+  $("joinBtn").disabled = true;
+
+  try {
+    await authReady;
+
+    const publicSnap = await get(ref(db, `rooms/${code}/public`));
+    if (!publicSnap.exists()) throw new Error("Room not found.");
+
+    const publicData = publicSnap.val();
+    if (publicData.phase !== "lobby") {
+      throw new Error("This game has already started.");
+    }
+
+    const membersSnap = await get(ref(db, `rooms/${code}/members`));
+    const members = membersSnap.val() || {};
+
+    if (members[uid]) {
+      enterRoom(code);
+      return;
+    }
+
+    const players = Object.entries(members);
+    if (players.length >= 4) throw new Error("Room is full.");
+
+    if (players.some(([, p]) => (p.name || "").toLowerCase() === name.toLowerCase())) {
+      throw new Error("This name is already being used in this room.");
+    }
+
+    await set(ref(db, `rooms/${code}/members/${uid}`), {
+      name,
+      score: 0
+    });
+
+    enterRoom(code);
+  } catch (error) {
+    message("loginMessage", error.message);
+  } finally {
+    $("joinBtn").disabled = false;
+  }
+}
+
+function enterRoom(code) {
+  if (listenersStarted) return;
+  listenersStarted = true;
+  roomCode = code;
+
+  $("loginPanel").classList.add("hidden");
+  $("gamePanel").classList.remove("hidden");
+  $("roomCodeLabel").textContent = code;
+
+  onValue(ref(db, `${roomPath()}/host`), snap => {
+    roomData.host = snap.val();
+    render();
+  });
+
+  onValue(ref(db, `${roomPath()}/members`), snap => {
+    roomData.members = snap.val() || {};
+    render();
+  });
+
+  onValue(ref(db, `${roomPath()}/public`), async snap => {
+    roomData.public = snap.val() || {};
+    render();
+
+    if (
+      roomData.host === uid &&
+      roomData.public.phase === "guessing" &&
+      roomData.public.guess &&
+      !processingRound
+    ) {
+      await finishRound();
+    }
+  });
+
+  onValue(ref(db, `${roomPath()}/private/${uid}`), snap => {
+    myPrivate = snap.val();
+    render();
+  });
+}
+
+function render() {
+  const members = roomData.members || {};
+  const pub = roomData.public || {};
+  const players = Object.entries(members);
+  const isHost = roomData.host === uid;
+
+  $("gameStatus").textContent =
+    `Round ${pub.round || 0} — ${pub.phase || "lobby"}`;
+
+  $("playersList").innerHTML = "";
+  players.forEach(([id, player]) => {
+    const row = document.createElement("div");
+    row.className = "player";
+
+    const playerName = document.createElement("span");
+    playerName.textContent = player.name + (id === roomData.host ? " 👑 Host" : "");
+
+    const playerScore = document.createElement("strong");
+    playerScore.className = "points";
+    playerScore.textContent = `${Number(player.score || 0)} points`;
+
+    row.append(playerName, playerScore);
+    $("playersList").appendChild(row);
+  });
+
+  $("startBtn").classList.toggle("hidden", !isHost);
+  $("startBtn").disabled =
+    players.length !== 4 || !["lobby", "reveal"].includes(pub.phase);
+
+  $("hostMessage").textContent = isHost
+    ? `Players joined: ${players.length}/4`
+    : "Waiting for the Host.";
+
+  $("wazirArea").classList.add("hidden");
+  $("revealArea").classList.add("hidden");
+  $("roleArea").textContent = "";
+
+  if (pub.phase === "lobby") {
+    $("roleArea").textContent = "Waiting for the Host to start the round.";
+    return;
+  }
+
+  if (pub.phase === "guessing") {
+    if (!myPrivate || !myPrivate.role) {
+      $("roleArea").textContent = "Loading your role...";
+      return;
+    }
+
+    const role = document.createElement("div");
+    role.className = "role";
+    role.textContent = myPrivate.role;
+    $("roleArea").appendChild(role);
+
+    if (myPrivate.role === "Badshah") {
+      $("roleArea").append(" You are the Badshah. Wait for the Wazir.");
+    } else if (myPrivate.role === "Wazir") {
+      $("wazirArea").classList.remove("hidden");
+      renderOptions(myPrivate.options || [], pub.guess);
+    } else {
+      $("roleArea").append(" Your role is private until the round ends.");
+    }
+    return;
+  }
+
+  if (pub.phase === "reveal") {
+    $("roleArea").textContent = "Round completed. All roles have been revealed.";
+    $("revealArea").classList.remove("hidden");
+    $("revealList").innerHTML = "";
+
+    Object.entries(pub.revealedRoles || {}).forEach(([id, item]) => {
+      const row = document.createElement("div");
+      row.className = "player";
+
+      const name = document.createElement("span");
+      name.textContent = item.name;
+
+      const role = document.createElement("strong");
+      role.textContent = item.role;
+
+      row.append(name, role);
+      $("revealList").appendChild(row);
+    });
+
+    if (pub.guess) {
+      const result = document.createElement("p");
+      result.className = "points";
+      result.textContent = pub.guess.correct
+        ? "Correct! Wazir receives 500 points."
+        : "Incorrect! Chor receives 500 points.";
+      $("revealList").appendChild(result);
+    }
+  }
+}
+
+function renderOptions(options, guess) {
+  $("wazirOptions").innerHTML = "";
+
+  if (guess) {
+    $("wazirOptions").textContent = "Your choice has been submitted. Waiting for the result.";
+    return;
+  }
+
+  options.forEach(option => {
+    const button = document.createElement("button");
+    button.className = "option";
+    button.textContent = option.name;
+    button.addEventListener("click", () => submitGuess(option.uid));
+    $("wazirOptions").appendChild(button);
+  });
+}
+
+async function startRound() {
+  message("gameMessage", "");
+
+  if (roomData.host !== uid) return;
+
+  const members = roomData.members || {};
+  const players = Object.entries(members);
+
+  if (players.length !== 4) {
+    message("gameMessage", "Exactly four players are required.");
+    return;
+  }
+
+  const names = players.map(([, p]) => (p.name || "").toLowerCase());
+  if (new Set(names).size !== 4) {
+    message("gameMessage", "All four player names must be different.");
+    return;
+  }
+
+  $("startBtn").disabled = true;
+
+  try {
+    const shuffled = shuffle(players);
+    const roles = ["Badshah", "Wazir", "Sipahi", "Chor"];
+    const assignments = {};
+
+    shuffled.forEach(([id], index) => {
+      assignments[id] = roles[index];
+    });
+
+    const privateData = {};
+    players.forEach(([id]) => {
+      privateData[id] = { role: assignments[id] };
+    });
+
+    const wazirId = Object.keys(assignments).find(id => assignments[id] === "Wazir");
+    const sipahiId = Object.keys(assignments).find(id => assignments[id] === "Sipahi");
+    const chorId = Object.keys(assignments).find(id => assignments[id] === "Chor");
+
+    privateData[wazirId].options = shuffle([
+      { uid: sipahiId, name: members[sipahiId].name },
+      { uid: chorId, name: members[chorId].name }
+    ]);
+
+    await set(ref(db, `${roomPath()}/private`), privateData);
+
+    await update(ref(db, `${roomPath()}/public`), {
+      round: Number(roomData.public.round || 0) + 1,
+      phase: "guessing",
+      guess: null,
+      revealedRoles: null
+    });
+
+    message("gameMessage", "Round started.");
+  } catch (error) {
+    message("gameMessage", "Could not start round: " + error.message);
+  } finally {
+    $("startBtn").disabled = false;
+  }
+}
+
+async function submitGuess(selectedUid) {
+  if (roomData.public.phase !== "guessing" || myPrivate?.role !== "Wazir") return;
+  if (roomData.public.guess) return;
+
+  try {
+    await set(ref(db, `${roomPath()}/public/guess`), {
+      by: uid,
+      selectedUid
+    });
+    message("gameMessage", "Your selection has been submitted.");
+  } catch (error) {
+    message("gameMessage", "Could not submit selection: " + error.message);
+  }
+}
+
+async function finishRound() {
+  if (processingRound) return;
+  processingRound = true;
+
+  try {
+    const [membersSnap, publicSnap] = await Promise.all([
+      get(ref(db, `${roomPath()}/members`)),
+      get(ref(db, `${roomPath()}/public`))
+    ]);
+
+    const members = membersSnap.val() || {};
+    const pub = publicSnap.val() || {};
+    const guess = pub.guess;
+
+    if (pub.phase !== "guessing" || !guess?.selectedUid) return;
+
+    const privateEntries = await Promise.all(
+      Object.keys(members).map(async id => {
+        const snap = await get(ref(db, `${roomPath()}/private/${id}`));
+        return [id, snap.val() || {}];
+      })
+    );
+
+    const privateData = Object.fromEntries(privateEntries);
+    const roles = {};
+
+    Object.entries(privateData).forEach(([id, data]) => {
+      roles[id] = data.role;
+    });
+
+    const wazirId = Object.keys(roles).find(id => roles[id] === "Wazir");
+    const chorId = Object.keys(roles).find(id => roles[id] === "Chor");
+
+    if (!wazirId || !chorId || guess.by !== wazirId) {
+      throw new Error("Invalid Wazir selection or missing role data.");
+    }
+
+    const correct = guess.selectedUid === chorId;
+    const updatedMembers = {};
+
+    Object.entries(members).forEach(([id, player]) => {
+      let score = Number(player.score || 0);
+
+      if (roles[id] === "Badshah") score += 1000;
+      if (roles[id] === "Sipahi") score += 300;
+      if (roles[id] === "Wazir" && correct) score += 500;
+      if (roles[id] === "Chor" && !correct) score += 500;
+
+      updatedMembers[id] = { ...player, score };
+    });
+
+    const revealedRoles = {};
+    Object.entries(roles).forEach(([id, role]) => {
+      revealedRoles[id] = {
+        name: members[id]?.name || "Player",
+        role
+      };
+    });
+
+    await update(ref(db, roomPath()), {
+      members: updatedMembers,
+      public: {
+        ...pub,
+        phase: "reveal",
+        guess: {
+          ...guess,
+          correct,
+          selectedName: members[guess.selectedUid]?.name || "Unknown"
+        },
+        revealedRoles
+      }
+    });
+  } catch (error) {
+    message("gameMessage", "Round result error: " + error.message);
+  } finally {
+    processingRound = false;
+  }
+}
+
+$("createBtn").addEventListener("click", createRoom);
+$("joinBtn").addEventListener("click", joinRoom);
+$("startBtn").addEventListener("click", startRound);
+
+authReady.catch(error => {
+  message("loginMessage", "Firebase sign-in error: " + error.message);
 });
-if(!result.committed)throw Error("Room is full, unavailable, or name already used.");
-const snap=await get(ref(db,"rooms/"+c+"/public/phase"));
-if(snap.val()!=="lobby"){
-await import("https://www.gstatic.com/firebasejs/13.1.0/firebase-database.js").then(async m=>m.remove(ref(db,"rooms/"+c+"/members/"+uid)));
-throw Error("This game has already started.");
-}
-await enter(c);
-}catch(e){msg("Join error: "+e.message,true)}
-working=false;
-};
-
-async function enter(c){
-room=c;
-$("entry").classList.add("hidden");
-$("game").classList.remove("hidden");
-$("roomCode").textContent=c;
-$("myName").textContent=clean($("name").value);
-unsubs.forEach(f=>f());
-unsubs=[];
-
-unsubs.push(onValue(ref(db,path("public")),snap=>{
-if(!snap.exists())return;
-roomData=roomData||{};
-roomData.public=snap.val();
-render();
-if(host)processGuess();
-}));
-
-unsubs.push(onValue(ref(db,path("members")),snap=>{
-roomData=roomData||{};
-roomData.members=snap.val()||{};
-render();
-}));
-
-unsubs.push(onValue(ref(db,path("private/"+uid)),snap=>{
-myPrivate=snap.val();
-render();
-}));
-
-unsubs.push(onValue(ref(db,path("host")),snap=>{
-host=snap.val()===uid;
-render();
-}));
-
-msg("Joined room "+c);
-}
-
-function render(){
-if(!roomData?.public||!roomData?.members)return;
-const pub=roomData.public,mem=members();
-$("round").textContent=pub.round||0;
-$("phase").textContent=pub.phase||"lobby";
-$("myName").textContent=mem[uid]?.name||"Player";
-$("myRole").textContent=myPrivate?.role||"Waiting for role...";
-$("roleInfo").textContent=
-myPrivate?.role==="Badshah"?"You are the Badshah.":
-myPrivate?.role==="Wazir"?"Select the correct Chor from the two name cards.":
-myPrivate?.role==="Sipahi"?"Your role is private.":
-myPrivate?.role==="Chor"?"Your role is private.": "";
-
-$("players").innerHTML=Object.entries(mem).map(([id,p])=>{
-const revealed=pub.phase==="reveal"||pub.phase==="ended";
-const role=revealed?(pub.revealedRoles?.[id]||""):(id===uid?(myPrivate?.role||""):"");
-return `<div class="player"><b>${esc(p.name)}</b><p>${esc(role)}</p></div>`;
-}).join("");
-
-$("scores").innerHTML=Object.values(mem)
-.sort((a,b)=>(b.score||0)-(a.score||0))
-.map(p=>`<div class="row"><span>${esc(p.name)}</span><b class="gold">${p.score||0}</b></div>`).join("");
-
-renderActions();
-}
-
-function renderActions(){
-const pub=roomData.public;
-const area=$("actions");
-area.innerHTML="";
-const phase=pub.phase;
-const count=Object.keys(members()).length;
-
-if(phase==="lobby"){
-$("stage").textContent=`Waiting for players: ${count}/4`;
-if(host){
-const b=document.createElement("button");
-b.textContent="Start Game";
-b.disabled=count!==4;
-b.onclick=startRound;
-area.append(b);
-}
-return;
-}
-
-if(phase==="question"){
-$("stage").textContent=myPrivate?.role==="Badshah"?
-"You are Badshah. Start Wazir's turn.":
-"Waiting for Badshah to continue.";
-if(myPrivate?.role==="Badshah"){
-const b=document.createElement("button");
-b.textContent="Continue to Wazir Guess";
-b.onclick=()=>update(ref(db,path("public")),{phase:"answer"});
-area.append(b);
-}
-return;
-}
-
-if(phase==="answer"){
-$("stage").textContent=myPrivate?.role==="Wazir"?
-"Choose one of the two names.":
-"Wazir is making a guess.";
-if(myPrivate?.role==="Wazir"&&myPrivate.options){
-Object.entries(myPrivate.options).forEach(([id,name])=>{
-const b=document.createElement("button");
-b.className="card";
-b.textContent=name;
-b.onclick=async()=>{
-if(!confirm("Select "+name+" as your guess?"))return;
-try{
-await set(ref(db,path("public/guess")),{uid:id,by:uid,round:pub.round});
-}catch(e){msg("Guess failed: "+e.message,true)}
-};
-area.append(b);
-});
-}
-return;
-}
-
-if(phase==="reveal"){
-$("stage").textContent="Round completed.";
-const r=pub.result||{};
-area.innerHTML=`<h3 class="gold">${r.correct?"Correct Guess!":"Wrong Guess!"}</h3>
-<p>Wazir selected: ${esc(r.selectedName||"-")}</p>
-<p>Actual Chor: ${esc(r.chorName||"-")}</p>
-<p>${esc(r.message||"")}</p>
-<h3>All Roles</h3>
-${Object.entries(pub.revealedRoles||{}).map(([id,role])=>`<p>${esc(members()[id]?.name||"Player")}: ${esc(role)}</p>`).join("")}`;
-if(host){
-const b=document.createElement("button");
-b.textContent="Next Round";b.onclick=startRound;area.append(b);
-const e=document.createElement("button");
-e.className="secondary";e.textContent="End Game";
-e.onclick=()=>update(ref(db,path("public")),{phase:"ended"});
-area.append(e);
-}
-return;
-}
-if(phase==="ended")$("stage").textContent="Game ended.";
-}
-
-async function startRound(){
-if(!host||working)return;
-const ids=Object.keys(members());
-if(ids.length!==4)return msg("Exactly four players are required.",true);
-working=true;
-try{
-const roles=shuffle(["Badshah","Wazir","Sipahi","Chor"]);
-roleMap={};
-const privateData={};
-ids.forEach((id,i)=>{
-roleMap[id]=roles[i];
-privateData[id]={role:roles[i]};
-});
-const sipahi=ids.find(id=>roleMap[id]==="Sipahi");
-const chor=ids.find(id=>roleMap[id]==="Chor");
-const wazir=ids.find(id=>roleMap[id]==="Wazir");
-privateData[wazir].options={
-[sipahi]:members()[sipahi].name,
-[chor]:members()[chor].name
-};
-const round=(roomData.public.round||0)+1;
-await set(ref(db,path("private")),privateData);
-await update(ref(db,path("public")),{
-round,phase:"question",guess:null,result:null,revealedRoles:null
-});
-processedGuess=null;
-msg("New round started.");
-}catch(e){msg("Start round error: "+e.message,true)}
-working=false;
-}
-
-async function processGuess(){
-const pub=roomData.public;
-if(!host||pub.phase!=="answer"||!pub.guess||!roleMap||Object.keys(roleMap).length!==4)return;
-if(processedGuess===pub.round)return;
-processedGuess=pub.round;
-try{
-const guess=pub.guess.uid;
-const chor=Object.keys(roleMap).find(id=>roleMap[id]==="Chor");
-const sipahi=Object.keys(roleMap).find(id=>roleMap[id]==="Sipahi");
-const badshah=Object.keys(roleMap).find(id=>roleMap[id]==="Badshah");
-const wazir=Object.keys(roleMap).find(id=>roleMap[id]==="Wazir");
-const correct=guess===chor;
-const mem=members();
-const scores={};
-Object.keys(mem).forEach(id=>scores[id]=mem[id].score||0);
-scores[badshah]+=1000;
-scores[sipahi]+=300;
-if(correct)scores[wazir]+=500;
-else scores[chor]+=500;
-const updates={};
-Object.entries(scores).forEach(([id,score])=>{
-updates["members/"+id+"/score"]=score;
-});
-updates["public/phase"]="reveal";
-updates["public/revealedRoles"]=roleMap;
-updates["public/result"]={
-correct,
-selectedName:mem[guess]?.name||"",
-chorName:mem[chor]?.name||"",
-message:correct?"Wazir receives 500 points.":"Chor receives 500 points."
-};
-await update(ref(db,path()),updates);
-}catch(e){
-processedGuess=null;
-msg("Scoring error: "+e.message,true);
-}
-}
-
-$("copy").onclick=async()=>{
-try{await navigator.clipboard.writeText(room);msg("Room code copied: "+room)}
-catch(e){msg("Room code: "+room)}
-};
-
-$("leave").onclick=()=>{
-if(!room)return;
-msg("You have left the room. Reloading...");
-location.reload();
-};
 </script>
 </body>
 </html>
